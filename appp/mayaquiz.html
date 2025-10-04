@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora Adventure: A Space Weather Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Cosmic Dream -->
+    <!-- Application Structure Plan: A linear, multi-section interactive story to guide children through space weather concepts. Starts with the sun, moves to Earth's magnetosphere, explains auroras, and ends with a simple quiz and a personalized certificate. This step-by-step flow is chosen for its simplicity and narrative structure, making complex topics easy for a young audience to follow and stay engaged. -->
+    <!-- Visualization & Content Choices: 1. Welcome Screen: Goal=Engage. Method=Full-screen aurora image and title. Interaction=Start button. Justification=Creates an immersive, exciting entry point. 2. Educational Sections: Goal=Inform. Method=Large illustrative images paired with simple, large-font text blocks. Interaction=Next/Back buttons. Justification=Breaks down information into digestible chunks, pairing visuals with simple explanations. 3. Quiz: Goal=Reinforce Learning. Method=Multiple-choice questions presented in styled cards. Interaction=Clicking answers with immediate visual feedback (color change). Justification=Gamifies learning and provides active recall. 4. Certificate: Goal=Reward. Method=Styled "certificate" area with a text input. Interaction=User types their name. Justification=Provides a sense of accomplishment and personalization. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #0c0a1a;
+            color: #ffffff;
+            background-image: url('https://images.unsplash.com/photo-1531366936337-7c912a4589a7?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .game-card {
+            background-color: rgba(12, 10, 26, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .title-glow {
+            text-shadow: 0 0 8px rgba(167, 243, 208, 0.7), 0 0 20px rgba(99, 102, 241, 0.5);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #38bdf8, #818cf8);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px 0 rgba(99, 102, 241, 0.5);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(56, 189, 248, 0.6);
+        }
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .quiz-option {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .quiz-option:hover {
+            border-color: #38bdf8;
+            transform: scale(1.02);
+        }
+        .quiz-option.correct {
+            background-color: #10b981;
+            border-color: #34d399;
+        }
+        .quiz-option.incorrect {
+            background-color: #ef4444;
+            border-color: #f87171;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 overflow-hidden">
+
+    <main id="game-container" class="w-full max-w-4xl mx-auto">
+
+        <!-- Section 1: Welcome -->
+        <section id="section-0" class="game-section">
+            <div class="game-card rounded-2xl p-8 md:p-12 text-center">
+                <h1 class="text-4xl md:text-6xl font-black mb-4 title-glow">Aurora Adventure</h1>
+                <p class="text-lg md:text-xl text-slate-300 mb-8 max-w-2xl mx-auto">Welcome, Space Explorer! Get ready for a journey to discover the magical lights in the sky and the amazing space weather that creates them.</p>
+                <button onclick="changeSection(1)" class="btn-primary text-white font-bold text-xl py-3 px-8 rounded-full">Start Adventure!</button>
+            </div>
+        </section>
+
+        <!-- Section 2: The Sun -->
+        <section id="section-1" class="game-section hidden">
+            <div class="game-card rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-6">
+                <img src="https://images.unsplash.com/photo-1614726353900-116c2772a655?q=80&w=1887&auto=format&fit=crop" alt="The Sun" class="w-full md:w-1/3 h-auto rounded-xl object-cover">
+                <div class="text-left">
+                    <h2 class="text-3xl font-bold mb-3 text-amber-300">Our Star, the Sun!</h2>
+                    <p class="text-slate-300 mb-4 text-lg">Our adventure starts with the Sun. It's not just a big ball of light! It constantly sends out a stream of tiny particles called the <strong class="text-amber-300">solar wind</strong>. Sometimes, it has big bursts of energy called <strong class="text-amber-300">solar flares</strong>!</p>
+                    <div class="flex gap-4 mt-6">
+                        <button onclick="changeSection(0)" class="btn-secondary text-white font-bold py-2 px-6 rounded-full">Back</button>
+                        <button onclick="changeSection(2)" class="btn-primary text-white font-bold py-2 px-6 rounded-full">Next</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Earth's Shield -->
+        <section id="section-2" class="game-section hidden">
+            <div class="game-card rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-6">
+                 <img src="https://images.unsplash.com/photo-1636291242334-39959f654a9c?q=80&w=1964&auto=format&fit=crop" alt="Earth's Magnetic Field" class="w-full md:w-1/3 h-auto rounded-xl object-cover">
+                <div class="text-left">
+                    <h2 class="text-3xl font-bold mb-3 text-sky-300">Earth's Force Field!</h2>
+                    <p class="text-slate-300 mb-4 text-lg">Luckily, Earth has a special, invisible shield called the <strong class="text-sky-300">magnetosphere</strong>. It protects us from most of the solar wind, like a superhero's force field!</p>
+                    <div class="flex gap-4 mt-6">
+                        <button onclick="changeSection(1)" class="btn-secondary text-white font-bold py-2 px-6 rounded-full">Back</button>
+                        <button onclick="changeSection(3)" class="btn-primary text-white font-bold py-2 px-6 rounded-full">Next</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: The Aurora Dancers -->
+        <section id="section-3" class="game-section hidden">
+            <div class="game-card rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-6">
+                <img src="https://images.unsplash.com/photo-1507494924047-608979b935a4?q=80&w=2070&auto=format&fit=crop" alt="Aurora Borealis" class="w-full md:w-1/3 h-auto rounded-xl object-cover">
+                <div class="text-left">
+                    <h2 class="text-3xl font-bold mb-3 text-emerald-300">The Sky Dancers!</h2>
+                    <p class="text-slate-300 mb-4 text-lg">Some solar wind particles get sneak past the shield near the North and South Poles. They zip down and bump into gases in our air, making them glow! These beautiful glowing lights are the <strong class="text-emerald-300">Aurora</strong>!</p>
+                    <div class="flex gap-4 mt-6">
+                        <button onclick="changeSection(2)" class="btn-secondary text-white font-bold py-2 px-6 rounded-full">Back</button>
+                        <button onclick="changeSection(4)" class="btn-primary text-white font-bold py-2 px-6 rounded-full">Quiz Time!</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Quiz -->
+        <section id="section-4" class="game-section hidden">
+            <div id="quiz-container" class="game-card rounded-2xl p-6 md:p-8 text-center">
+                <!-- Quiz questions will be injected here -->
+            </div>
+        </section>
+
+        <!-- Section 6: Certificate -->
+        <section id="section-5" class="game-section hidden">
+            <div class="game-card rounded-2xl p-8 md:p-12 text-center">
+                 <div class="text-yellow-300 text-6xl mb-4">✨</div>
+                <h1 class="text-4xl md:text-5xl font-black mb-2 title-glow">Mission Complete!</h1>
+                <p class="text-lg md:text-xl text-slate-300 mb-6">Congratulations! You're now an official Space Weather Explorer.</p>
+                <div class="bg-slate-900/50 border-2 border-dashed border-sky-400 rounded-xl p-6 max-w-lg mx-auto">
+                    <h3 class="text-2xl font-bold text-sky-300">Certificate of Exploration</h3>
+                    <p class="text-slate-300 mt-2">This certificate is awarded to</p>
+                    <p id="certificate-name" class="text-3xl font-bold text-white my-3">Brave Explorer</p>
+                    <p class="text-slate-300">for successfully completing the Aurora Adventure!</p>
+                </div>
+                <div class="mt-6">
+                     <input type="text" id="name-input" placeholder="Type your name here!" class="w-full max-w-xs text-center bg-transparent border-b-2 border-slate-500 focus:border-sky-300 focus:outline-none py-2 px-4 text-white text-lg transition">
+                </div>
+                <button onclick="restartGame()" class="btn-secondary text-white font-bold text-lg py-3 px-8 rounded-full mt-8">Play Again</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let currentSection = 0;
+        let score = 0;
+        let currentQuestionIndex = 0;
+
+        const sections = document.querySelectorAll('.game-section');
+
+        const quizData = [
+            {
+                question: "What is the stream of particles from the Sun called?",
+                options: ["Sun Wind", "Solar Wind", "Star Dust", "Light Stream"],
+                answer: "Solar Wind"
+            },
+            {
+                question: "What is Earth's invisible shield called?",
+                options: ["The Bubble", "Earth Coat", "The Magnetosphere", "Sky Shield"],
+                answer: "The Magnetosphere"
+            },
+            {
+                question: "What creates the beautiful aurora lights?",
+                options: ["City lights", "Rainbows at night", "Solar particles hitting air", "Moonlight"],
+                answer: "Solar particles hitting air"
+            }
+        ];
+
+        function changeSection(sectionIndex) {
+            sections[currentSection].classList.add('hidden');
+            sections[sectionIndex].classList.remove('hidden');
+            currentSection = sectionIndex;
+
+            if (currentSection === 4) {
+                startQuiz();
+            }
+        }
+        
+        function restartGame() {
+            score = 0;
+            currentQuestionIndex = 0;
+            changeSection(0);
+        }
+        
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            showQuestion();
+        }
+        
+        function showQuestion() {
+            const quizContainer = document.getElementById('quiz-container');
+            if (currentQuestionIndex < quizData.length) {
+                const q = quizData[currentQuestionIndex];
+                let optionsHTML = q.options.map(option => 
+                    `<div class="quiz-option bg-slate-700 p-4 rounded-lg cursor-pointer text-lg" onclick="checkAnswer(this, '${option}', '${q.answer}')">${option}</div>`
+                ).join('');
+
+                quizContainer.innerHTML = `
+                    <h2 class="text-2xl md:text-3xl font-bold mb-6">${q.question}</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${optionsHTML}
+                    </div>
+                    <p id="feedback" class="mt-4 h-6"></p>
+                `;
+            } else {
+                showQuizResults();
+            }
+        }
+
+        function checkAnswer(element, selected, correct) {
+            const allOptions = element.parentElement.children;
+            let answered = false;
+            for(let item of allOptions){
+                if(item.classList.contains('correct') || item.classList.contains('incorrect')){
+                    answered = true;
+                }
+            }
+
+            if(answered) return;
+
+            if (selected === correct) {
+                element.classList.add('correct');
+                score++;
+            } else {
+                element.classList.add('incorrect');
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                showQuestion();
+            }, 1200);
+        }
+        
+        function showQuizResults() {
+             const quizContainer = document.getElementById('quiz-container');
+             quizContainer.innerHTML = `
+                <h2 class="text-3xl font-bold mb-4">Quiz Complete!</h2>
+                <p class="text-xl text-slate-300 mb-6">You got ${score} out of ${quizData.length} questions right!</p>
+                <button onclick="changeSection(5)" class="btn-primary text-white font-bold text-xl py-3 px-8 rounded-full">Claim Your Certificate!</button>
+             `;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const nameInput = document.getElementById('name-input');
+            const certificateName = document.getElementById('certificate-name');
+            
+            nameInput.addEventListener('input', (e) => {
+                const name = e.target.value.trim();
+                if (name) {
+                    certificateName.textContent = name;
+                } else {
+                    certificateName.textContent = 'Brave Explorer';
+                }
+            });
+        });
+
+    </script>
+
+</body>
+</html>

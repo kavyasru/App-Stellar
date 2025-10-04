@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Weather Access Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --midnight-blue: #0c1445;
+            --button-orange: #fca311;
+            --tab-color: #34495e;
+            --tab-active: #fca311;
+        }
+        
+        body {
+            margin: 0;
+            font-family: 'Fredoka', sans-serif;
+            background-color: var(--midnight-blue);
+            color: white;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* --- BACKGROUND ELEMENTS --- */
+        .background-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -2; }
+        .star { position: absolute; background: white; border-radius: 50%; opacity: 0; animation: twinkle 4s infinite ease-in-out; }
+        @keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(0.5); } 50% { opacity: 1; transform: scale(1); } }
+        .planet { position: fixed; z-index: -1; animation: float 10s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+        #sun { width: 150px; top: 10%; left: 5%; animation-delay: -1s;}
+        #earth { width: 80px; top: 65%; left: 25%; animation-delay: -3s;}
+        #mars { width: 60px; top: 25%; left: 45%; animation-delay: -5s;}
+        #jupiter { width: 120px; top: 70%; right: 20%; animation-delay: -7s;}
+        #saturn { width: 160px; top: 15%; right: 10%; animation-delay: -9s;}
+
+        /* --- CONTAINER BOX --- */
+        .auth-container {
+            background: rgba(20, 30, 80, 0.75);
+            backdrop-filter: blur(10px);
+            padding: 2rem 3rem;
+            border-radius: 25px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            z-index: 10;
+            width: 350px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #87CEEB, #00BFFF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* --- TAB STYLES --- */
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tab-button {
+            flex-grow: 1;
+            padding: 10px 0;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            transition: color 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button.active {
+            color: white;
+            border-bottom: 3px solid var(--tab-active);
+        }
+
+        /* --- FORM STYLES --- */
+        .form-section.hidden {
+            display: none;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 1rem;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.1rem;
+            font-family: 'Fredoka', sans-serif;
+            box-sizing: border-box;
+            transition: background 0.3s;
+        }
+        
+        input::placeholder { color: rgba(255, 255, 255, 0.6); }
+        input:focus, select:focus { background: rgba(255, 255, 255, 0.2); outline: none;}
+        
+        select option { background: var(--midnight-blue); }
+
+        .form-group { text-align: left; margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500; color: rgba(255, 255, 255, 0.8); }
+
+        /* Gender Radio Buttons Styling */
+        .gender-options { display: flex; justify-content: space-between; }
+        .gender-options input[type="radio"] { display: none; }
+        .gender-options label {
+            flex: 1;
+            padding: 8px 0;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            margin-right: 5px;
+            text-align: center;
+            transition: background 0.2s, border 0.2s;
+            border: 2px solid transparent;
+        }
+        .gender-options label:last-child { margin-right: 0; }
+        .gender-options input[type="radio"]:checked + label {
+            background: var(--tab-active);
+            border-color: white;
+            color: var(--midnight-blue);
+            font-weight: 700;
+        }
+        .gender-options label:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .submit-button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: var(--button-orange);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(252, 163, 17, 0.4);
+            margin-top: 1rem;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(252, 163, 17, 0.6);
+        }
+
+        /* --- Message Display --- */
+        #message {
+            margin-top: 10px;
+            font-weight: 700;
+            min-height: 20px;
+        }
+
+        /* --- ROCKET & RESPONSIVE DESIGN --- */
+        #rocket { position: fixed; width: 100px; z-index: 5; left: 0; top: 50%; transform: translate(-150px, -50%); transition: transform 2s cubic-bezier(0.65, 0, 0.35, 1); }
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .auth-container { padding: 1.5rem 2rem; width: 85%; }
+            #sun { width: 100px; }
+            #earth { width: 60px; }
+            #mars { width: 45px; }
+            #jupiter { width: 90px; }
+            #saturn { width: 110px; }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="background-container"></div>
+    
+    <img id="sun" class="planet" src="sun.png" alt="Sun">
+    <img id="earth" class="planet" src="earth.png" alt="Earth">
+    <img id="mars" class="planet" src="mars.png" alt="Mars">
+    <img id="jupiter" class="planet" src="jupiter.png" alt="Jupiter">
+    <img id="saturn" class="planet" src="saturn1.png" alt="Saturn">
+    
+    <div class="auth-container" id="authContainer">
+        <h1>🌌 Access Terminal</h1>
+
+        <div class="tab-buttons">
+            <div class="tab-button active" data-tab="register" id="tab_register">Register</div>
+            <div class="tab-button" data-tab="login" id="tab_login">Login</div>
+        </div>
+
+        <div id="message"></div>
+
+        <div class="form-section" id="registerForm">
+            <form id="registrationForm">
+                <input type="text" id="reg_name" placeholder="Full Name" required>
+                <input type="number" id="reg_age" placeholder="Age" min="1" required>
+
+                <select id="reg_location" required>
+                    <option value="" disabled selected>Select Continent</option>
+                    <option value="Asia">Asia</option>
+                    <option value="Africa">Africa</option>
+                    <option value="North America">North America</option>
+                    <option value="South America">South America</option>
+                    <option value="Antarctica">Antarctica</option>
+                    <option value="Europe">Europe</option>
+                    <option value="Australia">Australia</option>
+                </select>
+
+                <div class="form-group">
+                    <label>Gender:</label>
+                    <div class="gender-options">
+                        <input type="radio" id="gender_male" name="gender" value="Male" required><label for="gender_male">Male</label>
+                        <input type="radio" id="gender_female" name="gender" value="Female"><label for="gender_female">Female</label>
+                        <input type="radio" id="gender_other" name="gender" value="Other"><label for="gender_other">Other</label>
+                    </div>
+                </div>
+
+                <input type="email" id="reg_mail" placeholder="Email Address" required>
+                <input type="text" id="reg_username" placeholder="Choose Username" required>
+                <input type="password" id="reg_password1" placeholder="Enter Password" required>
+                <input type="password" id="reg_password2" placeholder="Confirm Password" required>
+
+                <button type="submit" class="submit-button">Sign Up</button>
+            </form>
+        </div>
+
+        <div class="form-section hidden" id="loginForm">
+            <form id="loginFormActual">
+                <input type="text" id="login_username" placeholder="Username" required>
+                <input type="password" id="login_password" placeholder="Password" required>
+                
+                <button type="submit" class="submit-button">Login 🚀</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="rocket">
+        <img src="rocket11.png" alt="Rocket" style="width: 100%;">
+    </div>
+
+    <script>
+        // --- STAR GENERATION ---
+        const starsContainer = document.querySelector('.background-container');
+        for (let i = 0; i < 200; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+            const size = Math.random() * 2 + 1;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.animationDelay = `${Math.random() * 4}s`;
+            star.style.animationDuration = `${Math.random() * 3 + 2}s`;
+            starsContainer.appendChild(star);
+        }
+
+        // --- AUTH LOGIC ---
+        const messageDisplay = document.getElementById('message');
+        const registrationForm = document.getElementById('registrationForm');
+        const loginForm = document.getElementById('loginFormActual');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const formSections = document.querySelectorAll('.form-section');
+        const registerTab = document.getElementById('tab_register');
+        const loginTab = document.getElementById('tab_login');
+
+        // Initialize Users Array from Local Storage
+        let users = JSON.parse(localStorage.getItem('space_weather_users')) || [];
+
+        // Check if a user is already registered on load (to default to login view)
+        if (users.length > 0) {
+            registerTab.classList.remove('active');
+            document.getElementById('registerForm').classList.add('hidden');
+            loginTab.classList.add('active');
+            document.getElementById('loginForm').classList.remove('hidden');
+            messageDisplay.textContent = 'Welcome back! Please log in to continue.';
+            messageDisplay.style.color = 'lightblue';
+        }
+
+        // --- Tab Switching Logic (Restricted Access) ---
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.getAttribute('data-tab');
+                
+                // Block switching to login if no users are registered
+                if (targetTab === 'login' && users.length === 0) {
+                    messageDisplay.textContent = '❌ You must register first!';
+                    messageDisplay.style.color = 'red';
+                    return; 
+                }
+
+                // Deactivate all buttons and hide all forms
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                formSections.forEach(section => section.classList.add('hidden'));
+
+                // Activate the selected button and show the corresponding form
+                button.classList.add('active');
+                document.getElementById(targetTab + 'Form').classList.remove('hidden');
+                
+                // Clear any previous error messages when switching tabs
+                if (messageDisplay.style.color === 'red') {
+                    messageDisplay.textContent = '';
+                }
+            });
+        });
+
+        // --- Registration Handler ---
+        registrationForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            messageDisplay.textContent = '';
+
+            const username = document.getElementById('reg_username').value;
+            const password = document.getElementById('reg_password1').value;
+            const confirmPassword = document.getElementById('reg_password2').value;
+
+            if (password !== confirmPassword) {
+                messageDisplay.textContent = 'Error: Passwords do not match!';
+                messageDisplay.style.color = 'red';
+                return;
+            }
+
+            if (users.find(user => user.username === username)) {
+                messageDisplay.textContent = 'Error: Username already taken. Try logging in!';
+                messageDisplay.style.color = 'red';
+                return;
+            }
+
+            const newUser = {
+                username: username,
+                password: password,
+                name: document.getElementById('reg_name').value,
+                age: document.getElementById('reg_age').value,
+                location: document.getElementById('reg_location').value,
+                gender: registrationForm.querySelector('input[name="gender"]:checked') ? registrationForm.querySelector('input[name="gender"]:checked').value : 'N/A', // Check if gender is selected
+                email: document.getElementById('reg_mail').value
+            };
+
+            users.push(newUser);
+            localStorage.setItem('space_weather_users', JSON.stringify(users));
+            
+            messageDisplay.textContent = '✅ Registration Successful! Switching to Login...';
+            messageDisplay.style.color = 'lightgreen';
+
+            // Automatically switch to login tab after successful registration
+            loginTab.click(); 
+        });
+
+        // --- Login Handler ---
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            messageDisplay.textContent = '';
+            
+            const username = document.getElementById('login_username').value;
+            const password = document.getElementById('login_password').value;
+
+            const user = users.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                messageDisplay.textContent = `Welcome back, ${user.name}! Initiating launch sequence...`;
+                messageDisplay.style.color = 'lightgreen';
+                
+                localStorage.setItem('currentUser', JSON.stringify(user));
+
+                // Start the Rocket Launch Animation
+                startRocketLaunch();
+
+            } else {
+                messageDisplay.textContent = '❌ Invalid Username or Password. Please try again.';
+                messageDisplay.style.color = 'red';
+            }
+        });
+
+
+        // --- ROCKET LAUNCH LOGIC ---
+        const authContainer = document.getElementById('authContainer');
+        const rocket = document.getElementById('rocket');
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        const flyTo = (targetElement) => {
+            const rect = targetElement.getBoundingClientRect();
+            const targetX = rect.left + rect.width / 2;
+            const targetY = rect.top + rect.height / 2;
+            const rocketRect = rocket.getBoundingClientRect();
+            const finalX = targetX - rocketRect.width / 2;
+            const finalY = targetY - rocketRect.height / 2;
+
+            rocket.style.transform = `translate(${finalX}px, ${finalY}px) rotate(90deg)`;
+        };
+
+        async function startRocketLaunch() {
+            authContainer.classList.add('hidden');
+            await wait(500); // Wait for form fade out
+
+            const flightPath = ['earth', 'mars', 'jupiter', 'saturn'];
+
+            for (const planetId of flightPath) {
+                const planetElement = document.getElementById(planetId);
+                flyTo(planetElement);
+                await wait(1000);
+            }
+
+            // Fly off-screen to end the animation
+            rocket.style.transform = `translate(${window.innerWidth + 200}px, -200px) rotate(135deg)`;
+            
+            // Redirect to the home page (Change "home1.html" to your actual home page file)
+            await wait(1500); 
+            window.location.href = "home1.html";
+        }
+    </script>
+</body>
+</html>

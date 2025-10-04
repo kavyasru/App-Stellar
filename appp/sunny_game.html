@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Storm Architect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Cosmic Kids (Deep Space Blue, Solar Yellow, Nebula Purple, Rocket Red) -->
+    <!-- Application Structure Plan: The application is designed as a single-screen sandbox game with a level-based progression. The UI is split into three zones: the interactive Sun, the Earth system for observing effects, and a control panel for player actions. This structure was chosen to create a direct cause-and-effect learning environment, where children can experiment in one area (the Sun) and immediately see the results in another (the Earth), reinforcing the concepts of space weather. Modals are used for instructions and level completion rewards to guide the user flow without cluttering the main interface. -->
+    <!-- Visualization & Content Choices: 
+        - Sun/Earth: Goal is to represent celestial bodies. Presented as large, styled divs. Interaction involves clicking the sun to add sunspots (divs), visually teaching their origin.
+        - Solar Flares/CMEs: Goal is to show solar eruptions. Presented as animated divs traveling from Sun to Earth. This visualizes the event and its trajectory. Interaction is via buttons in the control panel, empowering the user to initiate the event.
+        - Earth's Magnetic Field: Goal is to explain protection. Presented as a semi-transparent halo around the Earth div. It visually reacts to solar events (e.g., shimmering auroras), demonstrating its function.
+        - Control Panel: Goal is to provide tools for experimentation. Sliders and buttons are used for intuitive control over game variables like 'energy' and 'shield strength'. This supports the sandbox learning style.
+        - All visuals are created with HTML and CSS animations to adhere to the no-SVG/no-Mermaid constraint. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif;
+            background-color: #0c1445;
+            background-image: radial-gradient(circle at top left, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 20%),
+                              radial-gradient(circle at bottom right, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 30%);
+        }
+        .sun {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, #ffeb3b, #ffc107, #f57c00);
+            border-radius: 50%;
+            box-shadow: 0 0 50px #ffc107, 0 0 100px #f57c00, inset 0 0 30px #ffeb3b;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .sun:hover {
+            transform: scale(1.05);
+        }
+        .sun.active {
+            animation: pulse 1s infinite;
+        }
+        .earth {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #66ccff, #3366cc, #003366);
+            border-radius: 50%;
+            position: relative;
+        }
+        .magnetic-field {
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background-color: rgba(137, 207, 240, 0.2);
+            border: 2px solid rgba(137, 207, 240, 0.5);
+            transition: all 0.5s ease;
+        }
+        .magnetic-field.weak {
+            opacity: 0.3;
+            border-color: rgba(255, 100, 100, 0.5);
+        }
+        .aurora {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            transform-origin: 50% 100%;
+            background: linear-gradient(to top, rgba(0, 255, 150, 0.5), transparent);
+            border-radius: 50% / 25%;
+            opacity: 0;
+            animation: shimmer 2s infinite alternate;
+        }
+        .sunspot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(0,0,0,0.6);
+            border-radius: 50%;
+        }
+        .solar-flare {
+            position: absolute;
+            width: 10px;
+            height: 100px;
+            background: linear-gradient(#ffeb3b, transparent);
+            border-radius: 5px;
+            animation: shoot-flare 2s linear forwards;
+        }
+        .cme {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(255, 200, 100, 0.5), transparent 70%);
+            border-radius: 50%;
+            animation: shoot-cme 4s linear forwards;
+        }
+        .satellite {
+            position: absolute;
+            font-size: 2rem;
+            transition: color 0.3s;
+            animation: orbit 10s linear infinite;
+        }
+        @keyframes orbit {
+            from { transform: rotate(0deg) translateX(100px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
+        }
+        .satellite.flicker {
+            animation: flicker-anim 0.5s infinite;
+        }
+        @keyframes flicker-anim {
+            0%, 100% { color: white; }
+            50% { color: red; }
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 50px #ffc107, 0 0 100px #f57c00, inset 0 0 30px #ffeb3b; }
+            50% { box-shadow: 0 0 60px #ffc107, 0 0 120px #f57c00, inset 0 0 35px #ffeb3b; }
+            100% { box-shadow: 0 0 50px #ffc107, 0 0 100px #f57c00, inset 0 0 30px #ffeb3b; }
+        }
+        @keyframes shoot-flare {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(40vw); opacity: 0; }
+        }
+        @keyframes shoot-cme {
+            from { transform: translateX(0) scale(0.5); opacity: 1; }
+            to { transform: translateX(40vw) scale(1.5); opacity: 0; }
+        }
+        @keyframes shimmer {
+            from { opacity: 0.8; transform: scaleY(1); }
+            to { opacity: 0.5; transform: scaleY(1.2); }
+        }
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 5s infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        .control-panel button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .control-panel input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #f59e0b;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .control-panel input[type="range"]::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: #f59e0b;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="text-white overflow-hidden">
+    <div id="star-container" class="absolute inset-0"></div>
+
+    <div class="min-h-screen flex flex-col items-center justify-center p-4 relative z-10">
+        <header class="text-center mb-4">
+            <h1 class="text-4xl md:text-6xl font-bold tracking-wider text-yellow-300">Solar Storm Architect</h1>
+            <p id="level-title" class="text-xl md:text-2xl text-cyan-300 mt-2">Level 1: The Sun's Freckles</p>
+        </header>
+
+        <main class="w-full h-[60vh] flex flex-col md:flex-row items-center justify-around">
+            <div id="sun-container" class="relative flex items-center justify-center w-1/3 h-full">
+                <div id="sun" class="sun"></div>
+            </div>
+            <div id="earth-container" class="relative flex items-center justify-center w-1/3 h-full">
+                <div class="relative flex items-center justify-center">
+                    <div id="satellite-container">
+                        <div class="satellite">🛰️</div>
+                    </div>
+                    <div id="earth" class="earth">
+                        <div id="aurora" class="aurora hidden"></div>
+                    </div>
+                    <div id="magnetic-field" class="magnetic-field"></div>
+                    <div id="power-grid-icon" class="absolute text-4xl opacity-0 transition-opacity">⚡</div>
+                </div>
+            </div>
+        </main>
+
+        <footer id="control-panel" class="control-panel w-full max-w-4xl bg-white/10 backdrop-blur-sm rounded-xl p-4 mt-4 text-center">
+            <h2 id="task-text" class="text-lg mb-4">Task: Tap the Sun three times to create sunspots!</h2>
+            <div id="level-1-controls" class="flex items-center justify-center gap-4">
+                <button id="flare-button" class="px-6 py-3 bg-red-600 rounded-lg text-xl font-bold shadow-lg shadow-red-600/50 transform hover:scale-105 transition-transform">Launch Solar Flare</button>
+            </div>
+            <div id="level-2-controls" class="hidden items-center justify-center gap-4 w-full">
+                <label for="energy-slider">Solar Energy:</label>
+                <input id="energy-slider" type="range" min="0" max="100" value="0" class="w-1/2">
+                <button id="cme-button" class="px-6 py-3 bg-purple-600 rounded-lg text-xl font-bold shadow-lg shadow-purple-600/50 transform hover:scale-105 transition-transform">Launch CME</button>
+            </div>
+            <div id="level-3-controls" class="hidden items-center justify-center gap-4 w-full">
+                <label for="shield-slider">Earth's Shield:</label>
+                <input id="shield-slider" type="range" min="10" max="100" value="100" class="w-1/2">
+                <button id="cme-button-lvl3" class="px-6 py-3 bg-purple-600 rounded-lg text-xl font-bold shadow-lg shadow-purple-600/50 transform hover:scale-105 transition-transform">Launch CME</button>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Modals -->
+    <div id="modal-container" class="fixed inset-0 bg-black/70 flex items-center justify-center hidden z-50">
+        <div id="modal-content" class="bg-gradient-to-br from-blue-800 to-purple-800 p-8 rounded-2xl shadow-2xl text-center w-11/12 max-w-md border-2 border-cyan-400">
+            <img id="modal-image" src="https://placehold.co/150x150/f59e0b/0c1445?text=🚀" alt="Celebration" class="mx-auto mb-4 rounded-full">
+            <h2 id="modal-title" class="text-3xl font-bold mb-2 text-yellow-300">Level Complete!</h2>
+            <p id="modal-text" class="text-lg mb-6">You're a natural sun whisperer! You've learned how to create sunspots and launch a solar flare.</p>
+            <button id="modal-button" class="px-8 py-3 bg-green-500 rounded-lg text-xl font-bold shadow-lg shadow-green-500/50 transform hover:scale-105 transition-transform">Next Level</button>
+        </div>
+    </div>
+
+
+    <script>
+        const game = {
+            level: 1,
+            sunspotCount: 0,
+            sunEnergy: 0,
+            shieldStrength: 100,
+            elements: {
+                sun: document.getElementById('sun'),
+                earth: document.getElementById('earth'),
+                aurora: document.getElementById('aurora'),
+                magneticField: document.getElementById('magnetic-field'),
+                satellite: document.querySelector('.satellite'),
+                powerGridIcon: document.getElementById('power-grid-icon'),
+                sunContainer: document.getElementById('sun-container'),
+                levelTitle: document.getElementById('level-title'),
+                taskText: document.getElementById('task-text'),
+                controls: {
+                    level1: document.getElementById('level-1-controls'),
+                    level2: document.getElementById('level-2-controls'),
+                    level3: document.getElementById('level-3-controls'),
+                },
+                buttons: {
+                    flare: document.getElementById('flare-button'),
+                    cme: document.getElementById('cme-button'),
+                    cmeLvl3: document.getElementById('cme-button-lvl3'),
+                },
+                sliders: {
+                    energy: document.getElementById('energy-slider'),
+                    shield: document.getElementById('shield-slider'),
+                },
+                modal: {
+                    container: document.getElementById('modal-container'),
+                    title: document.getElementById('modal-title'),
+                    text: document.getElementById('modal-text'),
+                    button: document.getElementById('modal-button'),
+                    image: document.getElementById('modal-image'),
+                },
+            },
+            init() {
+                this.setupEventListeners();
+                this.updateUI();
+                this.createStars();
+            },
+            createStars() {
+                const container = document.getElementById('star-container');
+                for (let i = 0; i < 100; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    const size = Math.random() * 3 + 1;
+                    star.style.width = `${size}px`;
+                    star.style.height = `${size}px`;
+                    star.style.top = `${Math.random() * 100}%`;
+                    star.style.left = `${Math.random() * 100}%`;
+                    star.style.animationDelay = `${Math.random() * 5}s`;
+                    container.appendChild(star);
+                }
+            },
+            setupEventListeners() {
+                this.elements.sun.addEventListener('click', () => this.addSunspot());
+                this.elements.buttons.flare.addEventListener('click', () => this.launchEvent('flare'));
+                this.elements.buttons.cme.addEventListener('click', () => this.launchEvent('cme'));
+                this.elements.buttons.cmeLvl3.addEventListener('click', () => this.launchEvent('cme'));
+                this.elements.modal.button.addEventListener('click', () => this.advanceLevel());
+                this.elements.sliders.energy.addEventListener('input', (e) => {
+                    this.sunEnergy = parseInt(e.target.value);
+                    this.updateUI();
+                });
+                this.elements.sliders.shield.addEventListener('input', (e) => {
+                    this.shieldStrength = parseInt(e.target.value);
+                    this.updateUI();
+                });
+            },
+            updateUI() {
+                this.elements.buttons.flare.disabled = this.sunspotCount < 3;
+                this.elements.buttons.cme.disabled = this.sunEnergy < 80;
+
+                if(this.sunEnergy > 50) {
+                    this.elements.sun.classList.add('active');
+                } else {
+                    this.elements.sun.classList.remove('active');
+                }
+
+                if (this.shieldStrength < 50) {
+                    this.elements.magneticField.classList.add('weak');
+                } else {
+                    this.elements.magneticField.classList.remove('weak');
+                }
+            },
+            addSunspot() {
+                if (this.level !== 1 || this.sunspotCount >= 3) return;
+                this.sunspotCount++;
+                const spot = document.createElement('div');
+                spot.className = 'sunspot';
+                const x = Math.random() * 80 + 10;
+                const y = Math.random() * 80 + 10;
+                spot.style.left = `${x}%`;
+                spot.style.top = `${y}%`;
+                this.elements.sun.appendChild(spot);
+                this.elements.taskText.textContent = `Sunspots created: ${this.sunspotCount}/3. Keep tapping!`;
+                if(this.sunspotCount === 3){
+                    this.elements.taskText.textContent = `Great! Now launch a solar flare!`;
+                }
+                this.updateUI();
+            },
+            launchEvent(type) {
+                const eventEl = document.createElement('div');
+                eventEl.className = type === 'flare' ? 'solar-flare' : 'cme';
+                const startY = Math.random() * 100 - 50;
+                eventEl.style.top = `calc(50% + ${startY}px)`;
+                eventEl.style.left = '100px'; 
+                this.elements.sunContainer.appendChild(eventEl);
+
+                setTimeout(() => {
+                    this.impactEarth(type);
+                    eventEl.remove();
+                }, type === 'flare' ? 2000 : 4000);
+            },
+            impactEarth(type) {
+                this.elements.aurora.classList.remove('hidden');
+                setTimeout(() => this.elements.aurora.classList.add('hidden'), 3000);
+
+                if (type === 'cme') {
+                    if (this.shieldStrength > 50) {
+                         this.elements.satellite.classList.add('flicker');
+                        setTimeout(() => this.elements.satellite.classList.remove('flicker'), 2000);
+                    } else {
+                        this.elements.powerGridIcon.style.opacity = '1';
+                        setTimeout(() => this.elements.powerGridIcon.style.opacity = '0', 3000);
+                    }
+                }
+                
+                setTimeout(() => this.checkLevelCompletion(), 1000);
+            },
+            checkLevelCompletion() {
+                if (this.level === 1 && this.sunspotCount >= 3) {
+                    this.showModal(1);
+                }
+                if (this.level === 2 && this.sunEnergy >= 80) {
+                    this.showModal(2);
+                }
+                if (this.level === 3 && this.shieldStrength < 50) {
+                    this.showModal(3);
+                }
+            },
+            showModal(levelNum) {
+                const content = {
+                    1: {
+                        title: "Level 1 Complete!",
+                        text: "Awesome! You made sunspots and launched a solar flare. Flares are bursts of light and energy!",
+                        button: "Go to Level 2",
+                        image: "https://placehold.co/150x150/ef4444/ffffff?text=Flare!&font=comicsans"
+                    },
+                    2: {
+                        title: "Level 2 Complete!",
+                        text: "Whoa, a CME! You learned that Coronal Mass Ejections are giant clouds of particles that can affect our satellites.",
+                        button: "Go to Level 3",
+                        image: "https://placehold.co/150x150/a855f7/ffffff?text=CME!&font=comicsans"
+                    },
+                    3: {
+                        title: "You're a Solar Pro!",
+                        text: "You discovered how Earth's magnetic shield protects us and what happens when it's weak. You're a true Solar Storm Architect!",
+                        button: "Play Again",
+                        image: "https://placehold.co/150x150/22c55e/ffffff?text=You%20Win!&font=comicsans"
+                    }
+                };
+                this.elements.modal.title.textContent = content[levelNum].title;
+                this.elements.modal.text.textContent = content[levelNum].text;
+                this.elements.modal.button.textContent = content[levelNum].button;
+                this.elements.modal.image.src = content[levelNum].image;
+                this.elements.modal.container.classList.remove('hidden');
+            },
+            advanceLevel() {
+                this.level++;
+                this.elements.modal.container.classList.add('hidden');
+                if (this.level > 3) {
+                    this.resetGame();
+                    return;
+                }
+                this.setupLevel();
+            },
+            resetGame() {
+                this.level = 1;
+                this.sunspotCount = 0;
+                this.sunEnergy = 0;
+                this.shieldStrength = 100;
+                this.elements.sun.innerHTML = '';
+                this.elements.sliders.energy.value = 0;
+                this.elements.sliders.shield.value = 100;
+                this.setupLevel();
+            },
+            setupLevel() {
+                Object.values(this.elements.controls).forEach(c => c.classList.add('hidden'));
+                if (this.level === 1) {
+                    this.elements.controls.level1.classList.remove('hidden');
+                    this.elements.levelTitle.textContent = "Level 1: The Sun's Freckles";
+                    this.elements.taskText.textContent = "Task: Tap the Sun three times to create sunspots!";
+                } else if (this.level === 2) {
+                    this.elements.controls.level2.classList.remove('hidden');
+                    this.elements.levelTitle.textContent = "Level 2: The Big Eruption";
+                    this.elements.taskText.textContent = "Task: Increase Solar Energy to at least 80% to launch a CME!";
+                } else if (this.level === 3) {
+                    this.elements.controls.level3.classList.remove('hidden');
+                    this.elements.levelTitle.textContent = "Level 3: Earth's Force Field";
+                    this.elements.taskText.textContent = "Task: Launch a CME, then lower Earth's shield below 50% and launch another to see the difference!";
+                }
+                this.updateUI();
+            }
+        };
+
+        game.init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Storm Quiz Master</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            color: #1e3a8a; /* Dark blue text */
+        }
+        .quiz-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(30, 58, 138, 0.1);
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .question-box {
+            background-color: #dbeafe; /* Light blue for question background */
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 3px solid #60a5fa;
+            font-size: 1.5rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .option-button {
+            transition: all 0.2s;
+            background-color: #3b82f6; /* Blue button */
+            color: white;
+            font-weight: 700;
+        }
+        .option-button:hover:not([disabled]) {
+            background-color: #1d4ed8; /* Darker blue on hover */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+        .correct-answer {
+            background-color: #10b981 !important; /* Green for correct */
+            border: 4px solid #065f46;
+            color: white !important;
+        }
+        .incorrect-answer {
+            background-color: #ef4444 !important; /* Red for incorrect */
+            border: 4px solid #991b1b;
+            color: white !important;
+        }
+        .modal {
+            background-color: rgba(0, 0, 0, 0.6);
+            transition: opacity 0.3s;
+        }
+        .modal-content {
+            background-color: #fff;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            border-radius: 1.5rem;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <div class="quiz-container mt-8">
+        <header class="text-center mb-6">
+            <h1 class="text-4xl font-black text-yellow-500 tracking-wider">☀️ Solar Storm Challenge! 🚀</h1>
+            <p class="text-xl mt-2 font-bold">Question <span id="current-question-number">1</span> of 10</p>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 mt-4">
+                <div id="progress-bar" class="bg-yellow-500 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+        </header>
+
+        <main>
+            <div id="quiz-area">
+                <div class="question-box">
+                    <p id="question-text">Loading question...</p>
+                </div>
+                
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    </div>
+            </div>
+        </main>
+
+        <footer class="mt-8 pt-4 border-t-2 border-gray-200 flex justify-end">
+            <p class="text-2xl font-black text-green-600">Score: <span id="score-display">0</span> / 10</p>
+        </footer>
+    </div>
+
+    <div id="feedback-modal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div class="modal-content p-8 max-w-lg w-full text-center">
+            <h2 id="modal-title" class="text-4xl font-black mb-4">Awesome!</h2>
+            <p id="modal-emoji" class="text-6xl mb-4">🌟</p>
+            <p id="modal-message" class="text-xl mb-4 font-bold"></p>
+            <p id="modal-rationale" class="text-lg text-gray-600 mb-6"></p>
+            <button id="next-button" class="py-3 px-8 text-lg font-extrabold rounded-full text-white bg-indigo-500 hover:bg-indigo-700 transition duration-150">Next Challenge!</button>
+        </div>
+    </div>
+    
+    <div id="final-modal" class="modal fixed inset-0 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none">
+        <div class="modal-content p-8 max-w-lg w-full text-center">
+            <h2 class="text-5xl font-black text-yellow-600 mb-4">Quiz Complete!</h2>
+            <p id="final-score-message" class="text-2xl font-bold mb-6">Your Final Score is 10/10!</p>
+            <p class="text-xl text-gray-600 mb-8">You are officially a Solar Storm Master! Keep exploring space!</p>
+            <button id="restart-button" class="py-3 px-8 text-lg font-extrabold rounded-full text-white bg-red-500 hover:bg-red-700 transition duration-150">Play Again</button>
+        </div>
+    </div>
+
+
+<script>
+    const quizData = {
+        questions: [
+            {
+                "questionNumber": 1,
+                "question": "In the game, a solar flare is triggered primarily by which solar condition?",
+                "answerOptions": [
+                    {"text": "Low Plasma Density", "isCorrect": false},
+                    {"text": "High Magnetic Energy", "isCorrect": true},
+                    {"text": "Low Solar Wind Speed", "isCorrect": false},
+                    {"text": "High Solar Rotation Rate", "isCorrect": false}
+                ],
+                "rationale": "Solar flares are violent bursts of energy caused by the sudden release of **magnetic energy** stored in the Sun's atmosphere."
+            },
+            {
+                "questionNumber": 2,
+                "question": "What is a Coronal Mass Ejection (CME) primarily composed of?",
+                "answerOptions": [
+                    {"text": "High-energy visible light", "isCorrect": false},
+                    {"text": "Massive amounts of solar plasma and magnetic field", "isCorrect": true},
+                    {"text": "Neutral hydrogen gas only", "isCorrect": false},
+                    {"text": "Solid chunks of stellar rock", "isCorrect": false}
+                ],
+                "rationale": "A CME is a large expulsion of **plasma** (charged particles) and magnetic field from the Sun's corona into space."
+            },
+            {
+                "questionNumber": 3,
+                "question": "What visual effect is produced on Earth when a CME successfully interacts with our planet's magnetic field?",
+                "answerOptions": [
+                    {"text": "Earthquakes", "isCorrect": false},
+                    {"text": "The Aurora (Northern and Southern Lights)", "isCorrect": true},
+                    {"text": "Volcanic Eruptions", "isCorrect": false},
+                    {"text": "Total Solar Eclipses", "isCorrect": false}
+                ],
+                "rationale": "The particles from a CME create the beautiful **auroras** by interacting with atmospheric gases in the polar regions."
+            },
+            {
+                "questionNumber": 4,
+                "question": "To launch a CME, why must both Magnetic Energy and Plasma Density be high?",
+                "answerOptions": [
+                    {"text": "Magnetic Energy stores the force, and Plasma Density provides the mass to be ejected.", "isCorrect": true},
+                    {"text": "Plasma Density controls the CME's direction, and Magnetic Energy controls its speed.", "isCorrect": false},
+                    {"text": "High settings ensure the event is a small solar flare, not a CME.", "isCorrect": false},
+                    {"text": "The Earth needs high magnetic energy to draw the CME towards it.", "isCorrect": false}
+                ],
+                "rationale": "High **magnetic energy** creates the powerful push, and high **plasma density** ensures there is a lot of material (mass) to form the CME."
+            },
+            {
+                "questionNumber": 5,
+                "question": "What is the primary difference between a solar flare and a CME?",
+                "answerOptions": [
+                    {"text": "Flares release intense electromagnetic radiation; CMEs release massive amounts of solar matter.", "isCorrect": true},
+                    {"text": "Flares release only light, while CMEs release only heat.", "isCorrect": false},
+                    {"text": "CMEs travel at the speed of light, and flares travel slowly.", "isCorrect": false},
+                    {"text": "Flares occur in the Sun's core, and CMEs occur on the surface.", "isCorrect": false}
+                ],
+                "rationale": "**Flares** are primarily bursts of light and radiation (energy), while **CMEs** are giant clouds of charged matter (mass)."
+            },
+            {
+                "questionNumber": 6,
+                "question": "What potential danger on Earth is represented by the 'satellite disrupted' icon during a powerful geomagnetic storm?",
+                "answerOptions": [
+                    {"text": "Damage to wind turbines.", "isCorrect": false},
+                    {"text": "Disruption of communication and navigation satellites.", "isCorrect": true},
+                    {"text": "Increased ocean tides.", "isCorrect": false},
+                    {"text": "Destruction of all vegetation.", "isCorrect": false}
+                ],
+                "rationale": "The charged particles and radiation from a storm can damage or interfere with electronics in **satellites** and power grids."
+            },
+            {
+                "questionNumber": 7,
+                "question": "The Sun's activity (like flares and CMEs) is driven by the constant movement and complexity of its:",
+                "answerOptions": [
+                    {"text": "Gravity", "isCorrect": false},
+                    {"text": "Magnetic fields", "isCorrect": true},
+                    {"text": "Sunspots only", "isCorrect": false},
+                    {"text": "Atmospheric pressure", "isCorrect": false}
+                ],
+                "rationale": "The stretching and snapping of **magnetic field lines** are the fundamental engine for all solar storms."
+            },
+            {
+                "questionNumber": 8,
+                "question": "What part of the Earth system acts as its main shield against the dangerous charged particles from a CME?",
+                "answerOptions": [
+                    {"text": "The Troposphere", "isCorrect": false},
+                    {"text": "The Ozone Layer", "isCorrect": false},
+                    {"text": "The Earth's Magnetosphere (Magnetic Field)", "isCorrect": true},
+                    {"text": "The Polar Ice Caps", "isCorrect": false}
+                ],
+                "rationale": "The Earth's **magnetic field** deflects most charged particles from the Sun, protecting the planet."
+            },
+            {
+                "questionNumber": 9,
+                "question": "What is the collective term for the conditions and phenomena in space that affect Earth and its technological systems?",
+                "answerOptions": [
+                    {"text": "Deep Space Ecology", "isCorrect": false},
+                    {"text": "Solar Ecology", "isCorrect": false},
+                    {"text": "Terrestrial Climate", "isCorrect": false},
+                    {"text": "Space Weather", "isCorrect": true}
+                ],
+                "rationale": "**Space Weather** is the standard term for changing conditions in the near-Earth space environment due to solar activity."
+            },
+            {
+                "questionNumber": 10,
+                "question": "Which solar event generally travels slower and takes days to reach Earth, giving us some warning time?",
+                "answerOptions": [
+                    {"text": "Solar Flares", "isCorrect": false},
+                    {"text": "Coronal Mass Ejections (CMEs)", "isCorrect": true},
+                    {"text": "Gamma-ray bursts", "isCorrect": false},
+                    {"text": "Solar System Tides", "isCorrect": false}
+                ],
+                "rationale": "**CMEs** are clouds of matter, traveling much slower than light, typically taking 1 to 3 days to reach Earth, giving scientists time to prepare."
+            }
+        ]
+    };
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let isAnswerLocked = false;
+
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const currentQuestionNumDisplay = document.getElementById('current-question-number');
+    const scoreDisplay = document.getElementById('score-display');
+    const progressBar = document.getElementById('progress-bar');
+    const feedbackModal = document.getElementById('feedback-modal');
+    const finalModal = document.getElementById('final-modal');
+    const nextButton = document.getElementById('next-button');
+    const restartButton = document.getElementById('restart-button');
+
+    // Array of fun emojis for appreciation
+    const appreciationEmojis = ["🌟", "✅", "💯", "🎉", "✨", "🚀", "💡", "🧠"];
+
+    function loadQuestion() {
+        if (currentQuestionIndex >= quizData.questions.length) {
+            showFinalScore();
+            return;
+        }
+
+        isAnswerLocked = false;
+        optionsContainer.innerHTML = ''; // Clear previous options
+        
+        const questionData = quizData.questions[currentQuestionIndex];
+        
+        // Update displays
+        currentQuestionNumDisplay.textContent = currentQuestionIndex + 1;
+        questionText.textContent = questionData.question;
+        
+        // Update progress bar
+        const progress = ((currentQuestionIndex) / quizData.questions.length) * 100;
+        progressBar.style.width = `${progress}%`;
+
+        // Create option buttons
+        questionData.answerOptions.forEach((option, index) => {
+            const button = document.createElement('button');
+            button.className = 'option-button w-full py-4 px-4 text-xl rounded-xl shadow-lg uppercase tracking-wider';
+            button.textContent = option.text;
+            button.dataset.isCorrect = option.isCorrect;
+            button.addEventListener('click', () => handleAnswer(button, option.isCorrect, questionData.rationale));
+            optionsContainer.appendChild(button);
+        });
+    }
+
+    function handleAnswer(selectedButton, isCorrect, rationale) {
+        if (isAnswerLocked) return;
+        isAnswerLocked = true;
+
+        // Disable all buttons to lock the answer
+        Array.from(optionsContainer.children).forEach(btn => btn.disabled = true);
+
+        // Apply visual feedback
+        selectedButton.classList.add(isCorrect ? 'correct-answer' : 'incorrect-answer');
+        
+        // Highlight the correct answer if the user was wrong
+        if (!isCorrect) {
+             const correctAnswerButton = Array.from(optionsContainer.children).find(btn => btn.dataset.isCorrect === 'true');
+             if (correctAnswerButton) {
+                 correctAnswerButton.classList.add('correct-answer');
+             }
+        }
+        
+        // Update score and show feedback
+        if (isCorrect) {
+            score++;
+            scoreDisplay.textContent = score;
+            showFeedback(true, rationale);
+        } else {
+            showFeedback(false, rationale);
+        }
+    }
+
+    function showFeedback(isCorrect, rationale) {
+        const titleElement = document.getElementById('modal-title');
+        const emojiElement = document.getElementById('modal-emoji');
+        const messageElement = document.getElementById('modal-message');
+        const rationaleElement = document.getElementById('modal-rationale');
+        
+        if (isCorrect) {
+            const emoji = appreciationEmojis[Math.floor(Math.random() * appreciationEmojis.length)];
+            titleElement.textContent = "Super Star!";
+            emojiElement.textContent = emoji;
+            messageElement.textContent = "You got it right! Time to learn why:";
+            titleElement.classList.remove('text-red-500');
+            titleElement.classList.add('text-green-600');
+        } else {
+            titleElement.textContent = "Oops!";
+            emojiElement.textContent = "🧐";
+            messageElement.textContent = "That wasn't quite right. Let's learn more:";
+            titleElement.classList.add('text-red-500');
+            titleElement.classList.remove('text-green-600');
+        }
+        
+        rationaleElement.textContent = rationale;
+        
+        // Show the modal with animation
+        feedbackModal.classList.add('active');
+        feedbackModal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function hideFeedback() {
+        feedbackModal.classList.remove('active');
+        feedbackModal.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    function showFinalScore() {
+        const finalMessage = document.getElementById('final-score-message');
+        finalMessage.textContent = `Your Final Score is ${score} / ${quizData.questions.length}!`;
+        
+        // Update final progress bar to 100%
+        progressBar.style.width = '100%';
+
+        finalModal.classList.add('active');
+        finalModal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function restartQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        scoreDisplay.textContent = score;
+        finalModal.classList.remove('active');
+        finalModal.classList.add('opacity-0', 'pointer-events-none');
+        loadQuestion();
+    }
+
+    // Event Listeners for Modals
+    nextButton.addEventListener('click', () => {
+        hideFeedback();
+        currentQuestionIndex++;
+        loadQuestion();
+    });
+
+    restartButton.addEventListener('click', restartQuiz);
+
+    // Initial load
+    window.onload = loadQuestion;
+</script>
+</body>
+</html>
